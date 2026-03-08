@@ -6,6 +6,7 @@ import ConfirmModal from '@/components/ConfirmModal.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import BaseInput from '@/components/ui/BaseInput.vue'
 import BaseSelect from '@/components/ui/BaseSelect.vue'
+import BaseTextarea from '@/components/ui/BaseTextarea.vue'
 import BaseSwitch from '@/components/ui/BaseSwitch.vue'
 import { useAccountStore } from '@/stores/account'
 import { useFarmStore } from '@/stores/farm'
@@ -115,6 +116,8 @@ const localOffline = ref({
   title: '',
   msg: '',
   offlineDeleteSec: 9999999999,
+  custom_headers: '',
+  custom_body: '',
 })
 
 const localQrLogin = ref({
@@ -249,6 +252,7 @@ const plantingStrategyOptions = [
 
 const channelOptions = [
   { label: 'Webhook(自定义接口)', value: 'webhook' },
+  { label: '自定义 JSON (Webhook)', value: 'custom_request' },
   { label: 'Qmsg 酱', value: 'qmsg' },
   { label: 'Server 酱', value: 'serverchan' },
   { label: 'Push Plus', value: 'pushplus' },
@@ -271,6 +275,7 @@ const channelOptions = [
 
 const CHANNEL_DOCS: Record<string, string> = {
   webhook: '',
+  custom_request: '',
   qmsg: 'https://qmsg.zendee.cn/',
   serverchan: 'https://sct.ftqq.com/',
   pushplus: 'https://www.pushplus.plus/',
@@ -801,7 +806,7 @@ async function handleTestOffline() {
             v-model="localOffline.endpoint"
             label="接口地址"
             type="text"
-            :disabled="localOffline.channel !== 'webhook'"
+            :disabled="localOffline.channel !== 'webhook' && localOffline.channel !== 'custom_request'"
           />
 
           <BaseInput
@@ -833,6 +838,19 @@ async function handleTestOffline() {
             type="text"
             placeholder="提醒内容"
           />
+
+          <template v-if="localOffline.channel === 'custom_request'">
+            <BaseTextarea
+              v-model="localOffline.custom_headers"
+              label="Headers (严格 JSON)"
+              placeholder='例如: {"Content-Type": "application/json", "Authorization": "Bearer TOKEN"}'
+            />
+            <BaseTextarea
+              v-model="localOffline.custom_body"
+              label="Body (严格 JSON, 占位符支持 {{title}}（标题） {{content}}（内容）)"
+              placeholder='例如: { "title": "{{title}}", "message": "{{content}}" }'
+            />
+          </template>
         </div>
 
         <!-- Save Offline Button -->

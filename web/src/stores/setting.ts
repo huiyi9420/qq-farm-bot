@@ -45,6 +45,8 @@ export interface OfflineConfig {
   title: string
   msg: string
   offlineDeleteSec: number
+  custom_headers?: string
+  custom_body?: string
 }
 
 export interface UIConfig {
@@ -82,6 +84,8 @@ export const useSettingStore = defineStore('setting', () => {
       title: '账号下线提醒',
       msg: '账号下线',
       offlineDeleteSec: 9999999999,
+      custom_headers: '',
+      custom_body: '',
     },
     qrLogin: {
       apiDomain: 'q.qq.com',
@@ -105,7 +109,7 @@ export const useSettingStore = defineStore('setting', () => {
         settings.value.friendQuietHours = d.friendQuietHours || { enabled: false, start: '23:00', end: '07:00' }
         settings.value.automation = d.automation || {}
         settings.value.ui = d.ui || {}
-        settings.value.offlineReminder = d.offlineReminder || {
+        settings.value.offlineReminder = {
           channel: 'webhook',
           reloginUrlMode: 'none',
           endpoint: '',
@@ -113,6 +117,9 @@ export const useSettingStore = defineStore('setting', () => {
           title: '账号下线提醒',
           msg: '账号下线',
           offlineDeleteSec: 9999999999,
+          custom_headers: '',
+          custom_body: '',
+          ...(d.offlineReminder || {}),
         }
         settings.value.qrLogin = d.qrLogin || {
           apiDomain: 'q.qq.com',

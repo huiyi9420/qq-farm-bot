@@ -14,6 +14,7 @@ const PUSHOO_CHANNELS = new Set([
     'dingtalk', 'wecom', 'bark', 'gocqhttp', 'onebot', 'atri',
     'pushdeer', 'igot', 'telegram', 'feishu', 'ifttt', 'wecombot',
     'discord', 'wxpusher',
+    'custom_request',
 ]);
 const INTERVAL_MAX_SEC = 86400;
 const DEFAULT_OFFLINE_DELETE_SEC = 9999999999;
@@ -27,6 +28,8 @@ const DEFAULT_OFFLINE_REMINDER = {
     title: '账号下线提醒',
     msg: '账号下线',
     offlineDeleteSec: DEFAULT_OFFLINE_DELETE_SEC,
+    custom_headers: '',
+    custom_body: '',
 };
 
 const DEFAULT_QR_LOGIN = {
@@ -132,6 +135,12 @@ function normalizeOfflineReminder(input) {
     const msg = (src.msg !== undefined && src.msg !== null)
         ? String(src.msg).trim()
         : DEFAULT_OFFLINE_REMINDER.msg;
+    const custom_headers = (src.custom_headers !== undefined && src.custom_headers !== null)
+        ? String(src.custom_headers).trim()
+        : DEFAULT_OFFLINE_REMINDER.custom_headers;
+    const custom_body = (src.custom_body !== undefined && src.custom_body !== null)
+        ? String(src.custom_body).trim()
+        : DEFAULT_OFFLINE_REMINDER.custom_body;
     return {
         channel,
         reloginUrlMode,
@@ -140,6 +149,8 @@ function normalizeOfflineReminder(input) {
         title,
         msg,
         offlineDeleteSec,
+        custom_headers,
+        custom_body,
     };
 }
 
