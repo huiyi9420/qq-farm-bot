@@ -319,14 +319,14 @@ watch(() => props.show, (newVal) => {
             :class="activeTab === 'qr' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'"
             @click="activeTab = 'qr'; loadQRCode()"
           >
-            {{ editData ? '扫码更新' : 'QQ扫码' }}
+            {{ editData ? 'QQ更新' : 'QQ扫码' }}
           </button>
           <button
               class="flex-1 py-2 text-center font-medium"
               :class="activeTab === 'wx' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'"
               @click="activeTab = 'wx'; loadWxQRCode()"
           >
-            {{ editData ? '扫码更新' : '微信扫码' }}
+            {{ editData ? '微信更新' : '微信扫码' }}
           </button>
           <button
             class="flex-1 py-2 text-center font-medium"
