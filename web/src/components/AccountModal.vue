@@ -6,6 +6,7 @@ import BaseButton from '@/components/ui/BaseButton.vue'
 import BaseInput from '@/components/ui/BaseInput.vue'
 import BaseSelect from '@/components/ui/BaseSelect.vue'
 import BaseTextarea from '@/components/ui/BaseTextarea.vue'
+import { useWxLoginStore } from "@/stores/wx-login.ts";
 
 const props = defineProps<{
   show: boolean
@@ -14,11 +15,15 @@ const props = defineProps<{
 
 const emit = defineEmits(['close', 'saved'])
 
-const activeTab = ref('qr') // qr, manual
+const wxLoginStore = useWxLoginStore()
+
+const activeTab = ref<'qr' | 'wx' | 'manual'>('manual')
 const loading = ref(false)
 const qrData = ref<{ image?: string, code: string, qrcode?: string, url?: string } | null>(null)
 const qrStatus = ref('')
 const errorMessage = ref('')
+// 微信扫码相关
+const wxAccountName = ref('')
 
 const form = reactive({
   name: '',
@@ -100,6 +105,52 @@ async function loadQRCode() {
     loading.value = false
   }
 }
+
+// 微信扫码轮询
+const { pause: stopWxCheck, resume: startWxCheck } = useIntervalFn(async () => {
+  if (wxLoginStore.status !== 'qr_ready' && wxLoginStore.status !== 'confirming') {
+    return
+  }
+  const result = await wxLoginStore.checkLogin()
+  if (result.success && result.wxid) {
+    stopWxCheck()
+    // 获取Code并添加账号
+    const codeResult = await wxLoginStore.getFarmCode()
+    if (codeResult.success && codeResult.code) {
+      const name = wxAccountName.value.trim() || result.nickname || `微信账号${Date.now()}`
+      await addAccount({
+        id: props.editData?.id,
+        name: props.editData ? (props.editData.name || name) : name,
+        code: codeResult.code,
+        platform: 'wx',
+        loginType: 'wx_qr',
+        wxid: result.wxid,
+      })
+    }
+  }
+}, 2000, { immediate: false })
+
+// 获取微信二维码
+async function loadWxQRCode() {
+  if (activeTab.value !== 'wx')
+    return
+  wxLoginStore.resetState()
+  const success = await wxLoginStore.getQRCode()
+  if (success) {
+    startWxCheck()
+  }
+}
+
+// 微信二维码图片
+const wxQrImageSrc = computed(() => {
+  if (!wxLoginStore.qrCode)
+    return ''
+  if (wxLoginStore.qrCode.startsWith('data:'))
+    return wxLoginStore.qrCode
+  if (wxLoginStore.qrCode.startsWith('http'))
+    return wxLoginStore.qrCode
+  return `data:image/png;base64,${wxLoginStore.qrCode}`
+})
 
 const isMobile = computed(() => /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent))
 const manualNameHint = computed(() => form.platform === 'qq'
@@ -268,7 +319,14 @@ watch(() => props.show, (newVal) => {
             :class="activeTab === 'qr' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'"
             @click="activeTab = 'qr'; loadQRCode()"
           >
-            {{ editData ? '扫码更新' : '扫码登录' }}
+            {{ editData ? '扫码更新' : 'QQ扫码' }}
+          </button>
+          <button
+              class="flex-1 py-2 text-center font-medium"
+              :class="activeTab === 'wx' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'"
+              @click="activeTab = 'wx'; loadWxQRCode()"
+          >
+            {{ editData ? '扫码更新' : '微信扫码' }}
           </button>
           <button
             class="flex-1 py-2 text-center font-medium"
@@ -309,6 +367,29 @@ watch(() => props.show, (newVal) => {
               @click="openQRCodeLoginUrl"
             >
               跳转QQ登录
+            </BaseButton>
+          </div>
+        </div>
+
+        <div v-if="activeTab === 'wx'" class="flex flex-col items-center justify-center py-4 space-y-4">
+          <div class="w-full text-center">
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+              扫码默认使用微信昵称
+            </p>
+          </div>
+
+          <div v-if="wxQrImageSrc" class="border rounded-lg p-2" :style="{ borderColor: 'color-mix(in srgb, var(--theme-text) 20%, transparent)', background: '#fff' }">
+            <img :src="wxQrImageSrc" class="h-48 w-48">
+          </div>
+          <p class="text-center text-sm" :style="{ color: 'var(--theme-text)' }">
+            {{ wxLoginStore.statusMessage }}
+          </p>
+          <p v-if="wxLoginStore.errorMessage"  class="text-sm text-gray-600 dark:text-gray-400">
+            {{ wxLoginStore.errorMessage }}
+          </p>
+          <div class="flex gap-2">
+            <BaseButton variant="secondary" size="sm" :loading="wxLoginStore.isLoading"  @click="loadWxQRCode">
+              刷新二维码
             </BaseButton>
           </div>
         </div>
