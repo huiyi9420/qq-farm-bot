@@ -342,6 +342,8 @@ watch(() => props.show, (newVal) => {
           <div class="w-full text-center">
             <p class="text-sm text-gray-500 dark:text-gray-400">
               扫码默认使用QQ昵称
+              <br/>
+              ⚠️⚠️⚠️已被官方封禁，请使用手动填码
             </p>
           </div>
 
@@ -375,6 +377,12 @@ watch(() => props.show, (newVal) => {
           <div class="w-full text-center">
             <p class="text-sm text-gray-500 dark:text-gray-400">
               扫码默认使用微信昵称
+              <br/>
+              ⚠️登录后手机微信里已登录设备退出车载微信
+              <br/>
+              ⚠️登录后手机微信里已登录设备退出车载微信
+              <br/>
+              ⚠️登录后手机微信里已登录设备退出车载微信
             </p>
           </div>
 
